@@ -1,0 +1,22 @@
+{
+    "arch": "mips",
+    "cpu": "mips3",
+    "data-layout": "E-m:e-p:32:32-i8:8:32-i16:16:32-i64:64-n32:32-S128",
+    "disable-redzone": true,
+    "env": "unknown",
+    "executables": true,
+    "features": "+mips3,+soft-float",
+    "linker": "lld",
+    "linker-flavor": "ld.lld",
+    "linker-is-gnu": false,
+    "llvm-abiname": "n32",
+    "llvm-target": "mips-ultra64-rcp",
+    "os": "none",
+    "panic-strategy": "abort",
+    "relocation-model": "static",
+    "target-endian": "big",
+    "target-c-int-width": "32",
+    "target-pointer-width": "32",
+    "vendor": "ultra64",
+    "max-atomic-width": 0
+  }

@@ -1,0 +1,2 @@
+[build]
+target = "../targets/mips-ultra64-rcp.json"

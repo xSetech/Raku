@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = [
+    "lib-kernel",
+    "rcp-kernel",
+    "cpu-kernel",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+license = "GPL-3.0+"
+repository = "https://github.com/xSetech/Summer"
+authors = [
+    "Seth Junot <xsetech@gmail.com>",
+]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

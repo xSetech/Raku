@@ -1,0 +1,16 @@
+[package]
+name = "cpu-kernel"
+description = "(Summer) Kernel that runs on the CPU"
+
+version.workspace = true
+license.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "cpu-kernel"
+path = "src/bin/main.rs"
+
+[dependencies]
+lib-kernel = { path = "../lib-kernel" }

@@ -1,0 +1,10 @@
+[toolchain]
+channel = "n64-dev-toolchain"
+profile = "minimal"
+components = [
+    "clippy",
+    "rust-analyzer",
+    "rust-src",
+    "rustc-dev",
+    "rustfmt",
+]

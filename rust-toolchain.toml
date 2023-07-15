@@ -1,5 +1,5 @@
 [toolchain]
-channel = "n64-dev-toolchain"
+channel = "nightly-2023-07-14"
 profile = "minimal"
 components = [
     "clippy",

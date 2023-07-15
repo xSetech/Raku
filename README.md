@@ -30,7 +30,7 @@ The Nintendo 64 contains two MIPS processors with different microarchitectures.
 
 ### Requirements
 
-- Rust, patched to support the N32 MIPS ABI.
+- At least Rust nightly-2023-07-14
 - A typical Unix terminal, like Bash or zsh
 - ... maybe LLVM w/ LLD?
 
@@ -41,7 +41,7 @@ An end-to-end build happens in two steps:
 1. The two kernels are built via `cargo build -Z build-std=core` in each crate directory.
 2. A ROM (.z64) is formed from the built kernels via `assemble-rom.sh`
 
-You can run all build everything end-to-end by running `build.sh`
+You can run all build everything end-to-end by running `./scripts/build.sh`
 
 ## License
 

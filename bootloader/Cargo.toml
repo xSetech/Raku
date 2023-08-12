@@ -1,0 +1,16 @@
+[package]
+name = "bootloader"
+description = "(Summer) Bootloader"
+
+version.workspace = true
+license.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "bootloader"
+path = "src/bin/main.rs"
+
+[dependencies]
+lib-kernel = { path = "../lib-kernel" }

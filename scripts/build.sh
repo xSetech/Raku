@@ -10,16 +10,23 @@ if [[ ! -e cpu-kernel/ ]]; then
     exit 1
 fi
 
+export CARGO_PROFILE="${CARGO_PROFILE:=dev}"
+
 # Step 1: Build the kernels
+
+echo "Building the bootloader..."
+cd bootloader/
+cargo build -Z build-std=core --color always --profile ${CARGO_PROFILE}
+cd - >/dev/null
 
 echo "Building the CPU kernel..."
 cd cpu-kernel/
-cargo build -Z build-std=core --color always
+cargo build -Z build-std=core --color always --profile ${CARGO_PROFILE}
 cd - >/dev/null
 
 echo "Building the RCP kernel..."
 cd rcp-kernel/
-cargo build -Z build-std=core --color always
+cargo build -Z build-std=core --color always --profile ${CARGO_PROFILE}
 cd - >/dev/null
 
 # Step 2: Assemble the ROM

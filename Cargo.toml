@@ -4,6 +4,7 @@ members = [
     "lib-kernel",
     "rcp-kernel",
     "cpu-kernel",
+    "bootloader",
 ]
 
 [workspace.package]

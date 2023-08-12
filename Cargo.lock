@@ -3,6 +3,13 @@
 version = 3
 
 [[package]]
+name = "bootloader"
+version = "0.0.1"
+dependencies = [
+ "lib-kernel",
+]
+
+[[package]]
 name = "cpu-kernel"
 version = "0.0.1"
 dependencies = [

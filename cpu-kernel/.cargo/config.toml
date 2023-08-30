@@ -1,2 +1,7 @@
 [build]
 target = "../targets/mips-ultra64-cpu.json"
+
+[target.mips-ultra64-cpu]
+rustflags = [
+    "-C", "link-arg=-Tcpu-kernel/linker.ld",
+]

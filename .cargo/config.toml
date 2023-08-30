@@ -43,16 +43,16 @@ rustflags = [
 rustflags = [
     # "--verbose",
     # "--print", "link-args",
-    # "--emit=llvm-ir,llvm-bc",
-    # "-C", "save-temps",
+    "--emit=asm,llvm-bc,llvm-ir",
+    "-C", "save-temps",
 ]
 
 [target.mips-ultra64-rcp]
 rustflags = [
     # "--verbose",
     # "--print", "link-args",
-    # "--emit=llvm-ir,llvm-bc",
-    # "-C", "save-temps",
+    "--emit=asm,llvm-bc,llvm-ir",
+    "-C", "save-temps",
 ]
 
 # eof

@@ -3,6 +3,5 @@ target = "../targets/mips-ultra64-cpu.json"
 
 [target.mips-ultra64-cpu]
 rustflags = [
-  "-C", "link-arg=-Tbootloader/linker.ld"
+    "-C", "link-arg=-Tbootloader/linker.ld",
 ]
-

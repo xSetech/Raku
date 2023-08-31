@@ -24,6 +24,7 @@
 
 #![feature(asm_experimental_arch)]
 #![feature(pointer_byte_offsets)]
+#![feature(asm_const)]
 
 use core::arch::asm;
 use core::panic::PanicInfo;
@@ -86,11 +87,11 @@ const KERNEL_ELF_OFFSET_IN_ROM: usize = 0x1008;  // req: 8-byte alignment
 ///     - https://n64brew.dev/wiki/MIPS_Interface#0x0430_000C_-_MI_MASK
 ///
 #[inline(always)]
-fn interrupt_init() {
+fn mask_interrupts() {
 
     // Disable interrupts controlled by the "System Control Coprocessor" (CP0). This
     // is done by reading the CP0 Status register (r12), zeroing the interrupt masks
-    // and global interupt-enable bit, and writing back the modified register value.
+    // and global interrupt-enable bit, and writing back the modified register value.
     // See p.170 of the VR4300 manual.
     let mut cp0_status_reg_value: u32;
     unsafe {
@@ -113,7 +114,7 @@ fn interrupt_init() {
         );
     }
 
-    // Disable interrupts managed by the MIPS/CPU interface by writting a value
+    // Disable interrupts managed by the MIPS/CPU interface by writing a value
     // to the "mask" register. Each "clear mask" flag corresponding to each type
     // of interrupt in the value is set to 1. The flags are located at bits 0,
     // 2, 4, 6, 8, and 10.
@@ -130,7 +131,7 @@ fn interrupt_init() {
 ///     - https://n64brew.dev/wiki/RDRAM#Initialization_Sequence
 ///
 #[inline(always)]
-fn rdram_init() {
+fn init_rdram() {
     return;
 }
 
@@ -165,7 +166,7 @@ fn copy_from_rom_to_ram(from_offset_in_rom: usize, to_vaddr: usize, num_bytes: u
 /// size and a virtual address in RDRAM KSEG1.
 ///
 #[inline(always)]
-fn kernel_init() {
+fn load_kernel() {
 
     // Read, from the ELF header, the offset of the section header table within the file
     let section_header_table_offset: usize = unsafe {
@@ -227,21 +228,17 @@ fn kernel_init() {
 ///
 /// The code will compile to the same jump instruction, but the compiler sees
 /// the function call and prepares the stack for it by adding a prologue and
-/// epilogue around __start(). A stack isn't necessary here, aside from it also
-/// not being setup.
+/// epilogue around __start()– unnecessary code.
 ///
 #[inline(always)]
-fn enter_kernel() -> ! {
+fn goto_kernel() -> ! {
     unsafe {
         asm!(
-            // Choice: Host the kernel's stack in the 4th MB of RAM, 16 bytes
-            // (required alignment) below the ceiling.
-            "la $29, 0xA03ffff0",
-
-            // Forgo saving any context and jump directly to the kernel entry point.
-            "j $14",
-            in("$14") KERNEL_ENTRY_ADDRESS,
-            options(noreturn)
+            "la $29, 0xA03ffff0",               // $sp ($29) <- top of 4th MB of RAM w/ 16-byte alignment
+            "la $31, {kernel_entry_address}",   // $ra
+            "j {kernel_entry_address}",
+            kernel_entry_address = const KERNEL_ENTRY_ADDRESS,
+            options(noreturn),
         );
     }
 }
@@ -254,10 +251,10 @@ fn enter_kernel() -> ! {
 ///
 #[no_mangle]
 pub extern "C" fn __start() -> ! {
-    interrupt_init();
-    rdram_init();
-    kernel_init();
-    enter_kernel();
+    mask_interrupts();
+    init_rdram();
+    load_kernel();
+    goto_kernel();
 }
 
 /// Required implementation for runtime panics

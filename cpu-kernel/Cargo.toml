@@ -1,6 +1,5 @@
 [package]
 name = "cpu-kernel"
-description = "(Summer) Kernel that runs on the CPU"
 
 version.workspace = true
 license.workspace = true

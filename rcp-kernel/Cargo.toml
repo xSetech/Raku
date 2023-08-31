@@ -1,6 +1,5 @@
 [package]
 name = "rcp-kernel"
-description = "(Summer) Kernel that runs on the RCP"
 
 version.workspace = true
 license.workspace = true

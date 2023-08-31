@@ -1,6 +1,5 @@
 [package]
 name = "bootloader"
-description = "Summer Bootloader"
 
 version.workspace = true
 license.workspace = true

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-//! Bootloader for a game submitted to the N64Brew Summer Game Jam, 2023
+//! Raku Bootloader
 //!
 //! This program confirms RDRAM is setup, copies a kernel entry point into RAM,
 //! and jumps to the entry point. The kernel is expected to be stored in an ELF

@@ -27,7 +27,7 @@ with open("target/header.bin", "wb") as f:
     f.write(struct.pack(">Q", 0))
 
     # Game Title
-    f.write(struct.pack("20s", b"Summer".ljust(20)))
+    f.write(struct.pack("20s", b"Raku".ljust(20)))
 
     # Reserved
     f.write(struct.pack("7s", b""))

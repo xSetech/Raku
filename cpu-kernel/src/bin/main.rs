@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-//! Kernel for a game submitted to the N64Brew Summer Game Jam, 2023
+//! Raku CPU kernel
 
 #![no_std]
 #![no_main]

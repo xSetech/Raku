@@ -30,13 +30,13 @@ fn vi_draw() {
         *vi.offset(0x02) = 320 as u32;
         *vi.offset(0x05) = 0x03E52239 as u32;
         *vi.offset(0x06) = 525 as u32;
-        *vi.offset(0x07) = 0x00150C15 as u32;
+        *vi.offset(0x07) = 0x00000C15 as u32;
         *vi.offset(0x08) = 0x0C150C15 as u32;
-        *vi.offset(0x09) = 0x006C02EC as u32;
-        *vi.offset(0x0A) = 0x00201FF as u32;
+        *vi.offset(0x09) = 0x006C02EC as u32;  // VI_H_VIDEO
+        *vi.offset(0x0A) = 0x002501FF as u32;  // VI_V_VIDEO
         *vi.offset(0x0B) = 0x000E0204 as u32;
-        *vi.offset(0x0C) = 0b00000000000000000000001000000000 as u32;
-        *vi.offset(0x0D) = 0b00000000000000000000010000000000 as u32;
+        *vi.offset(0x0C) = 0b00000000000000000000001000000000 as u32;  // x scale, 2.10
+        *vi.offset(0x0D) = 0b00000000000000000000010000000000 as u32;  // y scale
     }
 }
 

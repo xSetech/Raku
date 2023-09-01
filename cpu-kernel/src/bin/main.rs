@@ -182,8 +182,8 @@ fn rdp_draw(step: u32, square: &mut [u16; 5]) {
     let mut x_padding: u16 = square[3];
     let mut y_padding: u16 = square[4];
 
-    let x_padding_max: u16 = width / 2;
-    let y_padding_max: u16 = height / 2;
+    let x_padding_max: u16 = (width / 2) - 1;
+    let y_padding_max: u16 = (height / 2) - 1;
 
     // Running around the framebuffer
     match direction {
@@ -220,10 +220,14 @@ fn rdp_draw(step: u32, square: &mut [u16; 5]) {
         }
     }
 
-    if x_padding > x_padding_max {
+    if direction > 3 {
+        direction = direction % 4;
+    }
+
+    if x_padding >= x_padding_max {
         x_padding = 0;
     }
-    if y_padding > y_padding_max {
+    if y_padding >= y_padding_max {
         y_padding = 0;
     }
 

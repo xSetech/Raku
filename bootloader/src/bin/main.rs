@@ -67,6 +67,9 @@ const ELF_32_OFFSET_OF_SH_OFFSET: usize = 0x10;
 /// from the cartridge ROM.
 const KERNEL_ENTRY_ADDRESS: usize = 0xA0000000;
 
+/// Address of the kernel's stack, atop the 4th MB of RAM w/ 16-byte alignment
+const KERNEL_STACK_ADDRESS: usize = 0xA03ffff0;
+
 /// Offset in the ROM where content of the kernel ELF starts.
 ///
 /// Note, two words precede this value in the ROM. The first word is the size of
@@ -234,9 +237,10 @@ fn load_kernel() {
 fn goto_kernel() -> ! {
     unsafe {
         asm!(
-            "la $29, 0xA03ffff0",               // $sp ($29) <- top of 4th MB of RAM w/ 16-byte alignment
+            "la $29, {kernel_stack_address}",   // $sp
             "la $31, {kernel_entry_address}",   // $ra
             "j {kernel_entry_address}",
+            kernel_stack_address = const KERNEL_STACK_ADDRESS,
             kernel_entry_address = const KERNEL_ENTRY_ADDRESS,
             options(noreturn),
         );

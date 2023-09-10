@@ -9,19 +9,23 @@ for the
 
 ## Architecture
 
+If you're unfamiliar with the console and its capabilities, see here:
+- https://www.copetti.org/writings/consoles/nintendo-64/
+- https://github.com/command-tab/awesome-n64-development
+
 ### Two MIPS III targets
 
 The Nintendo 64 contains two MIPS III processors with significant differences
 between their architecture, lineage, and role within the system:
 
 1. The CPU, a ["slightly modified" VR4300](https://n64brew.dev/wiki/VR4300).
-2. The RCP, a heavily modified R4000 that uses a 32-bit ISA optimized for vector
-   math and video output. It lacks a floating point coprocessor, caches, and
-   exceptions.
+2. The RCP, a heavily modified [R4000](https://en.wikipedia.org/wiki/R4000)
+   that uses a 32-bit ISA optimized for vector math and graphics rendering.
+   Unlike the CPU, it lacks a floating point coprocessor, caches, and exceptions.
 
 Crates in this repo compile to code targeting one of those processors. The
 details of each target (e.g. stack alignment requirements, pointer width, etc)
-are specified in the [targets/](targets/) subdirectory within JSON
+are specified in the [`targets/`](targets/) subdirectory within JSON
 ["target specification" files](https://rust-lang.github.io/rfcs/0131-target-specification.html).
 
 ### Booting
@@ -51,16 +55,17 @@ This section describes the requirements and process of building the Raku ROM.
 #### Rust
 
 This is a project written in Rust and built with the standard Rust toolchain (i.e. Cargo).
-Follow the instructions at [https://www.rust-lang.org/] to install Rust and Cargo.
+Follow the instructions at [rust-lang.org](https://www.rust-lang.org/) to install Rust and Cargo.
 
-The project is built using a specific version of the Rust compiler; it's specified in
-[rust-toolchain.toml]. Cargo should automatically pull down this version for your system
-at build time. If you'd like to experiment with different versions of Rust, you must use
-at least nightly-2023-07-14 (which contains a patch related the N32 ABI).
+The project is built using a specific version of the Rust compiler; it's
+specified in [`rust-toolchain.toml`](rust-toolchain.toml). Cargo should
+automatically pull down this version for your system at build time. If you'd
+like to experiment with different versions of Rust, you must use at least
+nightly-2023-07-14 (which contains a patch related the N32 ABI).
 
 #### Bash and Python
 
-The ROM is assembled from compiled crates by shell and Python scripts located in [scripts/].
+The ROM is assembled from compiled crates by shell and Python scripts located in [`scripts/`](scripts/).
 Given that, Bash and Python must be installed. The project was initially built using these
 versions; other versions probably work, but they're left here for clarity:
 

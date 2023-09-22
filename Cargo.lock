@@ -16,10 +16,3 @@ dependencies = [
 [[package]]
 name = "lib-kernel"
 version = "0.2.0"
-
-[[package]]
-name = "rcp-kernel"
-version = "0.2.0"
-dependencies = [
- "lib-kernel",
-]

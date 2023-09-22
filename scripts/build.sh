@@ -24,12 +24,6 @@ cd cpu-kernel/
 cargo build -Z build-std=core --color always --profile ${CARGO_PROFILE}
 cd - >/dev/null
 
-# TODO
-# echo "Building the RCP kernel..."
-# cd rcp-kernel/
-# cargo build -Z build-std=core --color always --profile ${CARGO_PROFILE}
-# cd - >/dev/null
-
 # Step 2: Assemble the ROM
 
 ./scripts/assemble-rom.sh

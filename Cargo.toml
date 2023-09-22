@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
     "lib-kernel",
-    "rcp-kernel",
     "cpu-kernel",
     "bootloader",
 ]

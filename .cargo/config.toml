@@ -47,12 +47,7 @@ rustflags = [
     "-C", "save-temps",
 ]
 
-[target.mips-ultra64-rcp]
-rustflags = [
-    # "--verbose",
-    # "--print", "link-args",
-    "--emit=asm,llvm-bc,llvm-ir",
-    "-C", "save-temps",
-]
+[build]
+target = "targets/mips-ultra64-cpu.json"
 
 # eof

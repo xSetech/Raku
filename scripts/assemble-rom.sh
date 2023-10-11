@@ -4,8 +4,8 @@ set -e
 set -u
 set -o pipefail
 
-if [[ ! -e cpu-kernel/ ]]; then
-    echo "fail: ./cpu-kernel/ not found!" >&2
+if [[ ! -e kernel/ ]]; then
+    echo "fail: ./kernel/ not found!" >&2
     echo "note: call this script from the repo root" >&2
     exit 1
 fi
@@ -19,7 +19,7 @@ echo "Generating ROM header..."
 
 echo "Extracting and extending boot loader..."
 llvm-objcopy --dump-section .text=target/bootloader.bin ./target/mips-ultra64-cpu/release/bootloader
-./scripts/extend-boot-section.py target/bootloader.bin target/mips-ultra64-cpu/release/cpu-kernel
+./scripts/extend-boot-section.py target/bootloader.bin target/mips-ultra64-cpu/release/game
 
 echo "Assembling ROM..."
 
@@ -32,7 +32,7 @@ fi
 
 cp target/header.bin target/rom.z64
 cat target/bootloader.bin >> target/rom.z64
-cat ./target/mips-ultra64-cpu/release/cpu-kernel >> target/rom.z64
+cat ./target/mips-ultra64-cpu/release/game >> target/rom.z64
 # TODO
 # cat ./target/mips-ultra64-rcp/release/rcp-kernel >> target/rom.z64
 

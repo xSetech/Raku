@@ -4,8 +4,8 @@ set -e
 set -u
 set -o pipefail
 
-if [[ ! -e cpu-kernel/ ]]; then
-    echo "fail: ./cpu-kernel/ not found!" >&2
+if [[ ! -e kernel/ ]]; then
+    echo "fail: ./kernel/ not found!" >&2
     echo "note: call this script from the repo root" >&2
     exit 1
 fi
@@ -19,8 +19,8 @@ cd bootloader/
 cargo build -Z build-std=core --color always --profile ${CARGO_PROFILE}
 cd - >/dev/null
 
-echo "Building the CPU kernel..."
-cd cpu-kernel/
+echo "Building the game engine..."
+cd game/
 cargo build -Z build-std=core --color always --profile ${CARGO_PROFILE}
 cd - >/dev/null
 

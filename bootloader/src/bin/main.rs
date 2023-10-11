@@ -67,8 +67,8 @@ const ELF_32_OFFSET_OF_SH_OFFSET: usize = 0x10;
 /// from the cartridge ROM.
 const KERNEL_ENTRY_ADDRESS: usize = 0xA0000000;
 
-/// Address of the kernel's stack, atop the 4th MB of RAM w/ 16-byte alignment
-const KERNEL_STACK_ADDRESS: usize = 0xA03ffff0;
+/// Address of the kernel's stack, atop the 1st MB of RAM w/ 16-byte alignment
+const KERNEL_STACK_ADDRESS: usize = 0xA00ffff0;
 
 /// Offset in the ROM where content of the kernel ELF starts.
 ///

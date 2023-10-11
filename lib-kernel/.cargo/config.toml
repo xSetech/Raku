@@ -1,5 +1,0 @@
-[build]
-target = [
-    "../targets/mips-ultra64-cpu.json",
-    "../targets/mips-ultra64-rcp.json",
-]

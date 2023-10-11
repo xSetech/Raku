@@ -1,0 +1,19 @@
+[package]
+name = "kernel"
+
+version.workspace = true
+license.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[lib]
+name = "kernel"
+path = "src/lib.rs"
+crate-type = [
+    "rlib"
+]
+
+[dependencies]
+num_enum = { version = "0.7.0", default-features = false }
+proc-bitfield = { version = "0.3.0", features = ["nightly"] }

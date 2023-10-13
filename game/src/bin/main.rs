@@ -98,7 +98,7 @@ fn init_vi() {
         vi::set_y_scale(
             vi::YScaleReg(0)
                 .with_y_offset(0)
-                .with_y_scale(0b010000000000)
+                .with_y_scale(0b100000000000)
         );
 
     }
@@ -115,25 +115,27 @@ fn init_fbs() {
     let fb1 = FRAME_BUFFER_1_VADDR as *mut u32;
     unsafe {
 
-        // canvas, top-left
-        *fb1.offset(0x1) = 0xFF000000;
-        *fb1.offset(0x2) = 0x00FF0000;
-        *fb1.offset(0x3) = 0x0000FF00;
+        for px in 0..(640 * 480) as isize {
+            if px % 2 == 0 {
+                *fb1.offset(px) = 0xFF000000;
+            } else {
+                *fb1.offset(px) = 0x00FF0000;
+            }
+        }
 
-        // canvas, top-right
-        *fb1.offset(640 - 0x1) = 0xFF000000;
-        *fb1.offset(640 - 0x2) = 0x00FF0000;
-        *fb1.offset(640 - 0x3) = 0x0000FF00;
-
-        // canvas, bottom-left
-        *fb1.offset((640 * 479) + 1) = 0xFF000000;
-        *fb1.offset((640 * 479) + 2) = 0x00FF0000;
-        *fb1.offset((640 * 479) + 3) = 0x0000FF00;
-
-        // canvas, bottom-right
-        *fb1.offset((640 * 479) + 640 - 1) = 0xFF000000;
-        *fb1.offset((640 * 479) + 640 - 2) = 0x00FF0000;
-        *fb1.offset((640 * 479) + 640 - 3) = 0x0000FF00;
+        for row in 0..480 as isize {
+            let offset: isize = 640 * row;
+            *fb1.offset(offset + row) = 0xFFFFFF00;
+            *fb1.offset(offset + 639 - row) = 0xFFFFFF00;
+            *fb1.offset(offset + 480) = 0x0000FF00;
+            *fb1.offset(offset + 639 - 480) = 0x0000FF00;
+            if row % 32 == 0 {
+                for col in 0..640 as isize {
+                    let value = *fb1.offset(offset + col);
+                    *fb1.offset(offset + col) = value | 0x0000FF00;
+                }
+            }
+        }
 
     }
 
@@ -217,7 +219,7 @@ fn init_fbs() {
     let ptrs = clear_fbs_display_list.as_ptr_range();
     unsafe {
         rdpi.dp_start.write(ptrs.start as u32);
-        rdpi.dp_end.write(ptrs.end as u32)
+        // rdpi.dp_end.write(ptrs.end as u32)
     }
 
 }

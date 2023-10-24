@@ -1,0 +1,65 @@
+name: Debug build that doesn't produce a ROM
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  CARGO_TERM_COLOR: always
+  LLVM_VERSION: 16.0.4
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+
+          - os: ubuntu-latest
+            llvm_url: https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+
+        # No pre-built binaries for amd64 macOS :<
+        #
+        #   - os: macos-latest
+        #     llvm_url: https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-arm64-apple-darwin22.0.tar.xz
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Cache pre-built binaries of LLVM
+      id: cache-llvm
+      uses: actions/cache@v2
+      with:
+        path: |
+          llvm/bin/lld
+          llvm/bin/ld.lld
+        key: llvm-${{ env.LLVM_VERSION }}-${{ matrix.os }}
+
+    - name: Cache of Cargo registry and build artifacts
+      id: cache-rust
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/bin
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: rust-${{ env.LLVM_VERSION }}-${{ matrix.os }}-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock', 'rust-toolchain.toml', '**/config.toml') }}
+
+    - name: Download and extract pre-built LLVM release
+      if: steps.cache-llvm.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p llvm
+        curl -L ${{ matrix.llvm_url }} | tar xJ --strip-components=1 -C llvm
+
+    - name: Add extracted LLVM binaries to PATH
+      run: echo "$GITHUB_WORKSPACE/llvm/bin" >> $GITHUB_PATH
+
+    - name: Debug build of Raku from repo root
+      run: cargo build

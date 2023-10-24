@@ -39,6 +39,16 @@ jobs:
         path: llvm
         key: llvm-${{ env.LLVM_VERSION }}-${{ matrix.os }}
 
+    - name: Cache of Cargo registry and build artifacts
+      id: cache-rust
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: rust-${{ env.LLVM_VERSION }}-${{ matrix.os }}-${{ hashFiles('**/Cargo.toml') }}-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Download and extract pre-built LLVM release
       if: steps.cache-llvm.outputs.cache-hit != 'true'
       run: |
@@ -50,13 +60,3 @@ jobs:
 
     - name: Debug build of Raku from repo root
       run: cargo build
-
-    - name: Cache pre-built binaries of LLVM
-      id: cache-rust
-      uses: actions/cache@v2
-      with:
-        path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-        key: rust-${{ env.LLVM_VERSION }}-${{ matrix.os }}-${{ hashFiles('**/Cargo.toml') }}-${{ hashFiles('**/Cargo.lock') }}

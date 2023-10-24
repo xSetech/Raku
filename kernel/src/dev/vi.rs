@@ -250,7 +250,7 @@ bitfield! {
         /// -  PAL: 64
         pub color_burst_start: u16 @ 20..=29,
 
-        /// Timing of the length of vsync in terms of pixels.
+        /// Timing of the length of vsync in terms of half-lines.
         ///
         /// Standard values from the N64Brew wiki:
         /// - NTSC: 5

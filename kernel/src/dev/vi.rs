@@ -200,7 +200,13 @@ bitfield! {
 
 bitfield! {
 
-    /// Width of the frame buffer in pixels
+    /// Width in pixels of a full line of a frame in the frame buffer.
+    ///
+    /// If using progressive scan (e.g. 240p), lines are only made up
+    /// only one "field" is projected (e.g. width of 320px). If using
+    /// interlace scan (e.g. 480i), lines are made up of even and odd
+    /// "fields" (e.g. width of 640 * 2 = 1280px). This register seems
+    /// involved with how frame pixels are sampled and scaled.
     ///
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct VI_WIDTH(pub u32): IntoRaw, FromRaw {

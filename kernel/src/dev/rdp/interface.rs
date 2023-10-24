@@ -49,7 +49,9 @@ bitfield! {
     pub struct RDPStatusAsRead(pub u32): IntoRaw, FromRaw {
         pub start_pending: bool @ 10,
         pub end_pending: bool @ 9,
-        pub busy: bool @ 6,
+        pub buffer_busy: bool @ 7,
+        pub command_busy: bool @ 6,
+        pub pipe_busy: bool @ 5,
         pub flush: bool @ 2,
         pub freeze: bool @ 1,
         pub source: bool [DMATransferSource] @ 0,

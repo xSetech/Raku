@@ -36,7 +36,9 @@ jobs:
       id: cache-llvm
       uses: actions/cache@v2
       with:
-        path: llvm
+        path: |
+          llvm/bin/lld
+          llvm/bin/ld.lld
         key: llvm-${{ env.LLVM_VERSION }}-${{ matrix.os }}
 
     - name: Cache of Cargo registry and build artifacts

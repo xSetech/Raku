@@ -2,7 +2,8 @@
 
 //! Device interfaces and supporting structures
 
-pub mod reg;
 pub mod rdp;
+pub mod reg;
+pub mod vi;
 
 // eof

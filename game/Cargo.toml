@@ -13,4 +13,3 @@ path = "src/bin/main.rs"
 
 [dependencies]
 kernel = { path = "../kernel" }
-n64-pac = "0.3.3"

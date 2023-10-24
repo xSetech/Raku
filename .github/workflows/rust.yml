@@ -46,10 +46,11 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
+          ~/.cargo/bin
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: rust-${{ env.LLVM_VERSION }}-${{ matrix.os }}-${{ hashFiles('**/Cargo.toml') }}-${{ hashFiles('**/Cargo.lock') }}
+        key: rust-${{ env.LLVM_VERSION }}-${{ matrix.os }}-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock', 'rust-toolchain.toml', '**/config.toml') }}
 
     - name: Download and extract pre-built LLVM release
       if: steps.cache-llvm.outputs.cache-hit != 'true'

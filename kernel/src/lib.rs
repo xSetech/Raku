@@ -5,5 +5,6 @@
 #![no_std]
 
 pub mod dev;
+pub mod pic;
 
 // eof

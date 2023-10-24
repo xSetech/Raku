@@ -15,10 +15,10 @@ bitfield! {
         /// 0x37
         pub opcode: u8 @ 56..=61,
 
-        /// X coordinate, upper left of the scissor box (relative to the canvas)
+        /// X coordinate, upper left of the scissor box (relative to the canvas) in 10.2 fixed-point format
         pub x_upper_left: u16 @ 44..=55,
 
-        /// Y coordinate, upper left of the scissor box (relative to the canvas)
+        /// Y coordinate, upper left of the scissor box (relative to the canvas) in 10.2 fixed-point format
         pub y_upper_left: u16 @ 32..=43,
 
         /// If set, odd or even lines (determined by 'interfaced_lines') will be scissored
@@ -27,10 +27,10 @@ bitfield! {
         /// If interlaced scissoring is enabled, picks which lines will be scissored (odd or even)
         pub scissor_line_skip: bool [ScissorLineSkip] @ 24,
 
-        /// X coordinate, lower right of the scissor box (relative to the canvas)
+        /// X coordinate, lower right of the scissor box (relative to the canvas) in 10.2 fixed-point format
         pub x_lower_right: u16 @ 12..=23,
 
-        /// Y coordinate, lower right of the scissor box (relative to the canvas)
+        /// Y coordinate, lower right of the scissor box (relative to the canvas) in 10.2 fixed-point format
         pub y_lower_right: u16 @ 0..=11,
 
     }

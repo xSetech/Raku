@@ -14,6 +14,7 @@ use core::panic::PanicInfo;
 use kernel::dev::rdp::interface::RDPInterface;
 use kernel::dev::rdp::commands as rdp_commands;
 use kernel::dev::vi;
+use kernel::pic::RGBA;
 
 /// Addresses of two 640x480 32-bit RGBA frame buffers
 ///
@@ -32,7 +33,7 @@ use kernel::dev::vi;
 const FRAME_BUFFER_1_VADDR: usize = 0xA0100000;  // ..0xA022C000
 const FRAME_BUFFER_2_VADDR: usize = 0xA02D4000;  // ..0xA0400000
 
-static mut DISPLAY_LIST: [u64; 9] = [0; 9];
+static mut DISPLAY_LIST: [u64; 42] = [0; 42];
 
 /// Initializes the video interface (NTSC, 640x480 (480i), 32-bit color)
 ///
@@ -45,7 +46,7 @@ fn init_vi() {
     let mut video_control = vi::VI_CTRL(0)
         .with_color_depth(vi::ColorDepth::Blank)  // stop the signal for setup
         .with_aa_mode(vi::AntiAliasMode::Disabled)
-        .with_pixel_advance(0b0011)
+        .with_pixel_advance(0b11)
         .with_enable_serrate(true)
         .with_enable_dither_filter(false)
         .with_enable_divot(false)
@@ -63,7 +64,7 @@ fn init_vi() {
         );
         video_interface.v_intr.write(
             vi::VI_V_INTR(0)
-                .with_half_line(1000)
+                .with_half_line(0x3ff)
         );
         video_interface.burst.write(
             vi::VI_BURST(0)
@@ -74,7 +75,7 @@ fn init_vi() {
         );
         video_interface.v_sync.write(
             vi::VI_V_SYNC(0)
-                .with_v_sync((524 * 2) - 1)
+                .with_v_sync(524)
         );
         video_interface.h_sync.write(
             vi::VI_H_SYNC(0)
@@ -121,37 +122,7 @@ fn init_vi() {
 #[inline(never)]
 fn init_fbs() {
 
-    // A test pattern that was useful in debugging is written to the canvas at
-    // its four corners. These will most likely be invisible on real hardware
-    // due to "danger" (invisible) zones.
-    let fb1 = FRAME_BUFFER_1_VADDR as *mut u32;
-    unsafe {
-
-        for px in 0..(640 * 480) as isize {
-            if px % 2 == 0 {
-                *fb1.offset(px) = 0xFF000000;
-            } else {
-                *fb1.offset(px) = 0x00FF0000;
-            }
-        }
-
-        for row in 0..480 as isize {
-            let offset: isize = 640 * row;
-            *fb1.offset(offset + row) = 0xFFFFFF00;
-            *fb1.offset(offset + 639 - row) = 0xFFFFFF00;
-            *fb1.offset(offset + 480) = 0x0000FF00;
-            *fb1.offset(offset + 639 - 480) = 0x0000FF00;
-            if row % 32 == 0 {
-                for col in 0..640 as isize {
-                    let value = *fb1.offset(offset + col);
-                    *fb1.offset(offset + col) = value | 0x0000FF00;
-                }
-            }
-        }
-
-    }
-
-    // RDP display list to clear the frame buffers
+    // RDP display list to blank and draw color bars to the frame buffers
     let clear_fbs_display_list = &[
 
         rdp_commands::set_other_modes::SetOtherModes(0)
@@ -164,13 +135,15 @@ fn init_fbs() {
             .with_opcode(rdp_commands::RDPCommands::SET_SCISSOR.opcode())
             .with_x_upper_left(0)
             .with_y_upper_left(0)
-            .with_x_lower_right(640)
-            .with_y_lower_right(480)
+            .with_x_lower_right(640 << 2)
+            .with_y_lower_right(480 << 2)
             .into(),
+
+        // Zero the two frame buffers
 
         rdp_commands::set_fill_color::SetFillColor(0)
             .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
-            .with_packed_color(0x99009900)
+            .with_packed_color(0)
             .into(),
 
         rdp_commands::set_color_image::SetColorImage(0)
@@ -200,9 +173,229 @@ fn init_fbs() {
         rdp_commands::fill_rectangle::FillRectangle(0)
             .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
             .with_x_upper_left(0)
-            .with_y_upper_left(1 << 2)
+            .with_y_upper_left(0)
             .with_x_lower_right(640 << 2)
             .with_y_lower_right(480 << 2)
+            .into(),
+
+        // Vertical color bars (white, grey, rgb, ycp)
+
+        rdp_commands::set_color_image::SetColorImage(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_COLOR_IMAGE.opcode())
+            .with_address(FRAME_BUFFER_1_VADDR as u32)
+            .with_model(rdp_commands::set_color_image::CanvasColorModel::RGBA)
+            .with_pixel_size(rdp_commands::set_color_image::CanvasPixelSize::WORD)
+            .with_width(640 - 1)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0xFFFFFF00)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left((8 + (16 * 0)) << 2)
+            .with_y_upper_left(0)
+            .with_x_lower_right((15 + (16 * 0)) << 2)
+            .with_y_lower_right(480 << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0x7F7F7F00)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left((8 + (16 * 1)) << 2)
+            .with_y_upper_left(0)
+            .with_x_lower_right((15 + (16 * 1)) << 2)
+            .with_y_lower_right(480 << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0xFF000000)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left((8 + (16 * 2)) << 2)
+            .with_y_upper_left(0)
+            .with_x_lower_right((15 + (16 * 2)) << 2)
+            .with_y_lower_right(480 << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0x00FF0000)
+            .into(),
+
+            rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left((8 + (16 * 3)) << 2)
+            .with_y_upper_left(0)
+            .with_x_lower_right((15 + (16 * 3)) << 2)
+            .with_y_lower_right(480 << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0x0000FF00)
+            .into(),
+
+            rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left((8 + (16 * 4)) << 2)
+            .with_y_upper_left(0)
+            .with_x_lower_right((15 + (16 * 4)) << 2)
+            .with_y_lower_right(480 << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0xFFFF0000)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left((8 + (16 * 5)) << 2)
+            .with_y_upper_left(0)
+            .with_x_lower_right((15 + (16 * 5)) << 2)
+            .with_y_lower_right(480 << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0x00FFFF00)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left((8 + (16 * 6)) << 2)
+            .with_y_upper_left(0)
+            .with_x_lower_right((15 + (16 * 6)) << 2)
+            .with_y_lower_right(480 << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0xFF00FF00)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left((8 + (16 * 7)) << 2)
+            .with_y_upper_left(0)
+            .with_x_lower_right((15 + (16 * 7)) << 2)
+            .with_y_lower_right(480 << 2)
+            .into(),
+
+        // Horizontal color bars
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0xFFFFFF00)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left(0)
+            .with_y_upper_left((8 + (16 * 0)) << 2)
+            .with_x_lower_right(640 << 2)
+            .with_y_lower_right((15 + (16 * 0)) << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0x7F7F7F00)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left(0)
+            .with_y_upper_left((8 + (16 * 1)) << 2)
+            .with_x_lower_right(640 << 2)
+            .with_y_lower_right((15 + (16 * 1)) << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0xFF000000)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left(0)
+            .with_y_upper_left((8 + (16 * 2)) << 2)
+            .with_x_lower_right(640 << 2)
+            .with_y_lower_right((15 + (16 * 2)) << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0x00FF0000)
+            .into(),
+
+            rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left(0)
+            .with_y_upper_left((8 + (16 * 3)) << 2)
+            .with_x_lower_right(640 << 2)
+            .with_y_lower_right((15 + (16 * 3)) << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0x0000FF00)
+            .into(),
+
+            rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left(0)
+            .with_y_upper_left((8 + (16 * 4)) << 2)
+            .with_x_lower_right(640 << 2)
+            .with_y_lower_right((15 + (16 * 4)) << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0xFFFF0000)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left(0)
+            .with_y_upper_left((8 + (16 * 5)) << 2)
+            .with_x_lower_right(640 << 2)
+            .with_y_lower_right((15 + (16 * 5)) << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0x00FFFF00)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left(0)
+            .with_y_upper_left((8 + (16 * 6)) << 2)
+            .with_x_lower_right(640 << 2)
+            .with_y_lower_right((15 + (16 * 6)) << 2)
+            .into(),
+
+        rdp_commands::set_fill_color::SetFillColor(0)
+            .with_opcode(rdp_commands::RDPCommands::SET_FILL_COLOR.opcode())
+            .with_packed_color(0xFF00FF00)
+            .into(),
+
+        rdp_commands::fill_rectangle::FillRectangle(0)
+            .with_opcode(rdp_commands::RDPCommands::FILL_RECTANGLE.opcode())
+            .with_x_upper_left(0)
+            .with_y_upper_left((8 + (16 * 7)) << 2)
+            .with_x_lower_right(640 << 2)
+            .with_y_lower_right((15 + (16 * 7)) << 2)
             .into(),
 
         rdp_commands::full_sync::FullSync(0)
@@ -231,7 +424,86 @@ fn init_fbs() {
     let ptrs = clear_fbs_display_list.as_ptr_range();
     unsafe {
         rdpi.dp_start.write(ptrs.start as u32);
-        // rdpi.dp_end.write(ptrs.end as u32)
+        rdpi.dp_end.write(ptrs.end as u32)
+    }
+
+    // Wait for the RDP to draw the bars
+    loop {
+        if !rdpi.dp_status.read().busy() {
+            break;
+        }
+    }
+
+    let fb1 = FRAME_BUFFER_1_VADDR as *mut u32;
+
+    // Draw special vertical bars
+    for col in (320 - 32)..(320 + 32) as isize {
+        for row in 0..480 as isize {
+            let offset = col + (640 * row);
+            if col < 320 {
+                unsafe {
+                    if row & 0x1 == 0 {
+                        *fb1.offset(offset) = 0xFFFFFF00;
+                    } else {
+                        *fb1.offset(offset) = 0x00000000;
+                    }
+                }
+            } else {
+                unsafe {
+                    if row & 0x1 == 0 {
+                        *fb1.offset(offset) = 0x12345600;
+                    } else {
+                        *fb1.offset(offset) = 0x65432100;
+                    }
+                }
+            }
+        }
+    }
+
+    // Draw special horizontal bars
+    for row in (240 - 32)..(240 + 32) as isize {
+        for col in 0..640 as isize {
+            let offset = col + (640 * row);
+            if row < 240 {
+                unsafe {
+                    if col & 0x1 == 0 {
+                        *fb1.offset(offset) = 0x33FF3300;
+                    } else {
+                        *fb1.offset(offset) = 0x33333300;
+                    }
+                }
+            } else {
+                unsafe {
+                    if col & 0x1 == 0 {
+                        *fb1.offset(offset) = 0xCCCCCC00;
+                    } else {
+                        *fb1.offset(offset) = 0xFF33FF00;
+                    }
+                }
+            }
+        }
+    }
+
+    // Draw special screen center
+    let row_start = 240 - 32;
+    let row_end = 240 + 32;
+    let col_start = 320 - 32;
+    let col_end = 320 + 32;
+    for row in row_start..row_end as isize {
+        for col in col_start..col_end as isize {
+            let offset = col + (640 * row);
+            let r: u8 = ((row_end - row) * 4) as u8;
+            let g: u8 = (((row_end - row) + (col_end - col)) * 2) as u8;
+            let b: u8 = ((col_end - col) * 4) as u8;
+            let color = RGBA(0)
+                .with_red(r)
+                .with_green(g)
+                .with_blue(b)
+                .with_alpha(0);
+            unsafe {
+                *fb1.offset(offset) = color.into();
+            }
+        }
     }
 
 }

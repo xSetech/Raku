@@ -179,10 +179,10 @@ pub enum ColorDepth {
     #[default]
     Blank = 0b00,
 
-    /// Framebuffer uses 16-bits per pixel, 5/5/5/1 RGBA
+    /// Frame buffer uses 16-bits per pixel, 5/5/5/1 RGBA
     HighColor = 0b10,
 
-    /// Framebuffer uses 32-bits per pixel, 8/8/8/8 RGBA
+    /// Frame buffer uses 32-bits per pixel, 8/8/8/8 RGBA
     TrueColor = 0b11,
 
 }
@@ -445,7 +445,7 @@ bitfield! {
     ///
     /// - "If AA_MODE = 11 (resampling disabled), TYPE = 10 (16-bit), X_SCALE is
     ///   0x200 or lower, and H_START is less than 128, the VI generates invalid
-    ///   output, consisting of the first 64 pixels from the framebuffer from
+    ///   output, consisting of the first 64 pixels from the frame buffer from
     ///   the current line, then 64 pixels of garbage, and these two repeat for
     ///   the rest of each scanline"
     ///

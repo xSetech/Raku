@@ -40,7 +40,7 @@ jobs:
         key: llvm-${{ env.LLVM_VERSION }}-${{ matrix.os }}
 
     - name: Download and extract pre-built LLVM release
-      if: steps.cache-llvm.outputs.cache-hit == 'false'
+      if: steps.cache-llvm.outputs.cache-hit != 'true'
       run: |
         mkdir -p llvm
         curl -L ${{ matrix.llvm_url }} | tar xJ --strip-components=1 -C llvm

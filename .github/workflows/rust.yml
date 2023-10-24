@@ -1,0 +1,52 @@
+name: Simple debug build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  CARGO_TERM_COLOR: always
+  LLVM_VERSION: 16.0.4
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+
+          - os: ubuntu-latest
+            llvm_url: https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+
+        # No pre-built binaries for amd64 macOS :<
+        #
+        #   - os: macos-latest
+        #     llvm_url: https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-arm64-apple-darwin22.0.tar.xz
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Cache pre-built binaries of LLVM
+      id: cache-llvm
+      uses: actions/cache@v2
+      with:
+        path: llvm
+        key: llvm-${{ env.LLVM_VERSION }}-${{ matrix.os }}
+
+    - name: Download and extract pre-built LLVM release
+      if: steps.cache-llvm.outputs.cache-hit == 'false'
+      run: |
+        mkdir -p llvm
+        curl -L ${{ matrix.llvm_url }} | tar xJ --strip-components=1 -C llvm
+
+    - name: Add extracted LLVM binaries to PATH
+      run: echo "$GITHUB_WORKSPACE/llvm/bin" >> $GITHUB_PATH
+
+    - name: Build
+      run: cargo build

@@ -13,8 +13,7 @@ use core::panic::PanicInfo;
 
 use kernel::dev::rdp::interface::RDPInterface;
 use kernel::dev::rdp::commands as rdp_commands;
-
-use n64_pac::vi;
+use kernel::dev::vi;
 
 /// Addresses of two 640x480 32-bit RGBA frame buffers
 ///
@@ -35,76 +34,89 @@ const FRAME_BUFFER_2_VADDR: usize = 0xA02D4000;  // ..0xA0400000
 
 static mut DISPLAY_LIST: [u64; 9] = [0; 9];
 
-/// Initializes the video interface (NTSC, 640x480, 32-bit color)
+/// Initializes the video interface (NTSC, 640x480 (480i), 32-bit color)
 ///
 /// Documentation:
 ///     - https://n64brew.dev/wiki/Video_Interface
 ///
 #[inline(never)]
 fn init_vi() {
+    let video_interface = vi::VI::new();
+    let mut video_control = vi::VI_CTRL(0)
+        .with_color_depth(vi::ColorDepth::Blank)  // stop the signal for setup
+        .with_aa_mode(vi::AntiAliasMode::Disabled)
+        .with_pixel_advance(0b0011)
+        .with_enable_serrate(true)
+        .with_enable_dither_filter(false)
+        .with_enable_divot(false)
+        .with_enable_gamma_boost(false)
+        .with_enable_gamma_dither(false);
     unsafe {
-        vi::set_origin(FRAME_BUFFER_1_VADDR as u32);
-        vi::set_ctrl(
-            vi::CtrlReg(0)
-                .with_dither_filter_enable(false)
-                .with_pixel_advance(0b0011)
-                .with_aa_mode(vi::AntiAliasMode::Disabled)
-                .with_serrate(false)
-                .with_divot_enable(false)
-                .with_gamma_enable(false)
-                .with_gamma_dither_enable(false)
-                .with_depth(vi::ColorDepth::BPP32)
+        video_interface.ctrl.write(video_control);
+        video_interface.origin.write(
+            vi::VI_ORIGIN(0)
+                .with_vaddr(FRAME_BUFFER_1_VADDR as u32)
         );
-        vi::set_width(640);
-        vi::set_v_intr(0x3FF);
-        vi::set_burst(
-            vi::BurstReg(0)
-                .with_burst_start(62)
-                .with_vsync_width(5)
-                .with_burst_width(34)
+        video_interface.width.write(
+            vi::VI_WIDTH(0)
+                .with_width(640)
+        );
+        video_interface.v_intr.write(
+            vi::VI_V_INTR(0)
+                .with_half_line(1000)
+        );
+        video_interface.burst.write(
+            vi::VI_BURST(0)
+                .with_color_burst_start(62)
+                .with_color_burst_width(34)
                 .with_hsync_width(57)
+                .with_vsync_width(5)
         );
-        vi::set_v_sync(0x20D);
-        vi::set_h_sync(
-            vi::HSyncReg(0)
-                .with_leap(0)
-                .with_h_sync(0xC15)
+        video_interface.v_sync.write(
+            vi::VI_V_SYNC(0)
+                .with_v_sync((524 * 2) - 1)
         );
-        vi::set_h_sync_leap(
-            vi::HSyncLeapReg(0)
-                .with_leap_a(0xC15)
-                .with_leap_b(0xC15)
+        video_interface.h_sync.write(
+            vi::VI_H_SYNC(0)
+                .with_leap_pattern(0)
+                .with_line_duration(3093)
         );
-        vi::set_h_video(
-            vi::HVideoReg(0)
-                .with_h_start(0x06C)
-                .with_h_end(0x2EC)
+        video_interface.h_sync_leap.write(
+            vi::VI_H_SYNC_LEAP(0)
+                .with_leap_a(3093)
+                .with_leap_b(3093)
         );
-        vi::set_v_video(
-            vi::VVideoReg(0)
+        video_interface.h_video.write(
+            vi::VI_H_VIDEO(0)
+                .with_h_start(108)
+                .with_h_end(748)
+        );
+        video_interface.v_video.write(
+            vi::VI_V_VIDEO(0)
                 .with_v_start(0x025)
                 .with_v_end(0x1FF)
         );
-        vi::set_v_burst(
-            vi::VBurstReg(0)
+        video_interface.v_burst.write(
+            vi::VI_V_BURST(0)
                 .with_v_burst_start(0x00E)
                 .with_v_burst_end(0x204)
         );
-        vi::set_x_scale(
-            vi::XScaleReg(0)
-                .with_x_offset(0)
-                .with_x_scale(0b010000000000)
+        video_interface.x_scale.write(
+            vi::VI_X_SCALE(0)
+                .with_offset(0)
+                .with_scale(0b_01_0000000000)  // 2.10 fixed-point
         );
-        vi::set_y_scale(
-            vi::YScaleReg(0)
-                .with_y_offset(0)
-                .with_y_scale(0b100000000000)
+        video_interface.y_scale.write(
+            vi::VI_Y_SCALE(0)
+                .with_offset(0)
+                .with_scale(0b_10_0000000000)  // 2.10 fixed-point
         );
-
+        video_control.set_color_depth(vi::ColorDepth::TrueColor);  // begin the signal after setup
+        video_interface.ctrl.write(video_control);
     }
 }
 
-/// Blank the frame buffers ("fb1" & "fb2")
+/// Blank the frame buffers ("fb1" & "fb2") and write a test pattern.
 ///
 #[inline(never)]
 fn init_fbs() {

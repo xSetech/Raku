@@ -1,5 +1,5 @@
 [toolchain]
-channel = "nightly-2023-10-08"
+channel = "nightly-2023-11-15"
 profile = "minimal"
 components = [
     "clippy",

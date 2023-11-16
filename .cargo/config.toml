@@ -49,5 +49,8 @@ rustflags = [
 
 [build]
 target = "targets/mips-ultra64-cpu.json"
+rustflags = [
+    "-Z", "threads=8"
+]
 
 # eof

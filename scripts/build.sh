@@ -16,12 +16,12 @@ export CARGO_PROFILE="${CARGO_PROFILE:=dev}"
 
 echo "Building the bootloader..."
 cd bootloader/
-cargo build -Z build-std=core --color always --profile ${CARGO_PROFILE}
+cargo build --timings -Z build-std=core --color always --profile ${CARGO_PROFILE}
 cd - >/dev/null
 
 echo "Building the game engine..."
 cd game/
-cargo build -Z build-std=core --color always --profile ${CARGO_PROFILE}
+cargo build --timings -Z build-std=core --color always --profile ${CARGO_PROFILE}
 cd - >/dev/null
 
 # Step 2: Assemble the ROM

@@ -23,7 +23,6 @@
 #![no_main]
 
 #![feature(asm_experimental_arch)]
-#![feature(pointer_byte_offsets)]
 #![feature(asm_const)]
 
 use core::arch::asm;

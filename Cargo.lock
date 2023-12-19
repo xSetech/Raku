@@ -4,18 +4,18 @@ version = 3
 
 [[package]]
 name = "bootloader"
-version = "0.2.0"
+version = "0.3.0"
 
 [[package]]
 name = "game"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "kernel",
 ]
 
 [[package]]
 name = "kernel"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "num_enum",
  "proc-bitfield",
